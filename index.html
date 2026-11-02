@@ -27,24 +27,27 @@ a{color:var(--p)}
 .lbl{font-size:13px;font-weight:600;letter-spacing:.06em}
 
 /* layout */
-.wrap{display:flex;gap:32px;justify-content:center;align-items:flex-start;padding:28px 24px;min-height:100vh}
-.panel{width:270px;flex:none;position:sticky;top:28px;display:flex;flex-direction:column;gap:16px}
-.brandrow{display:flex;align-items:center;gap:12px}
-.navgrp{background:#fff;border:1px solid var(--line);border-radius:18px;padding:10px;display:flex;flex-direction:column;gap:2px}
-.navgrp h3{margin:4px 8px 6px;font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--mut)}
-.navbtn{min-height:40px;border:none;background:transparent;border-radius:10px;text-align:left;padding:0 10px;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px}
-.navbtn:hover{background:var(--lav)}
-.navbtn.on{background:var(--p);color:#fff;font-weight:600}
-.tips{font-size:13px;color:var(--mut);background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 14px;line-height:1.5}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px 24px 40px;min-height:100vh}
+.topnav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 14px;box-shadow:0 6px 18px rgba(44,37,79,.08)}
+.topnav .sep{width:1px;height:24px;background:var(--line);margin:0 4px}
+.nums{display:flex;gap:2px}
+.num{width:36px;height:36px;border-radius:18px;border:none;background:transparent;color:var(--p);font-size:15px;font-weight:600}
+.num:hover{background:var(--lav)}
+.num.on{background:var(--p);color:#fff}
+.statesel{max-width:120px;height:36px;border-radius:18px;border:1px solid var(--line);background:#fff;color:var(--p);font-size:13px;font-weight:600;padding:0 10px}
+.iconbtn{width:36px;height:36px;border-radius:18px;border:none;background:transparent;color:var(--p);display:flex;align-items:center;justify-content:center}
+.iconbtn:hover{background:var(--lav)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .device{width:380px;height:820px;border-radius:44px;background:#1B1726;padding:10px;flex:none;box-shadow:0 30px 60px rgba(44,37,79,.25)}
 .screen{width:360px;height:800px;border-radius:34px;overflow:hidden;position:relative;background:var(--lav);display:flex;flex-direction:column}
-.adminwrap{flex:1;min-width:0;max-width:1360px;border-radius:20px;overflow:hidden;box-shadow:0 20px 50px rgba(44,37,79,.18)}
+.adminwrap{width:100%;max-width:1360px;border-radius:20px;overflow:hidden;box-shadow:0 20px 50px rgba(44,37,79,.18)}
 @media (max-width:760px){
-  .wrap{display:flex;flex-direction:column;gap:0;padding:0}
-  .panel{order:2}
+  .wrap{padding:0;gap:0}
   .device{width:100%;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:var(--lav)}
   .screen{width:100%;height:100dvh;border-radius:0}
-  .panel{position:static;width:auto;padding:20px 16px 40px}
+  .topnav{order:2;margin:16px;border-radius:24px}
+  .topnav img,.topnav .sep{display:none}
+  .topnav{padding:6px}
   .adminwrap{border-radius:0;box-shadow:none}
 }
 
@@ -453,25 +456,40 @@ function screenHTML() {
   }
 }
 function panelHTML() {
-  return `<aside class="panel" aria-label="Prototype controls">
-    <div class="brandrow"><img src="${IMG.logo}" alt="MakerGhat" style="width:110px"></div>
-    <div><div class="h2" style="color:var(--p)">Tinker Trail · Build 1</div><div class="cap mut">Clickable prototype for IGNITE fellows</div></div>
-    ${SCREENS.map(([g, list]) => `<nav class="navgrp" aria-label="${g}"><h3>${g.toUpperCase()}</h3>${list.map(([k, l]) => `<button class="navbtn ${S.screen === k ? 'on' : ''}" data-act="go" data-arg="${k}">${l}</button>`).join('')}</nav>`).join('')}
-    <button class="btn2" data-act="restart">${ic('restart', 18)}Restart demo</button>
-    <div class="tips"><b>How to present</b><br>Start at Login. Tap any 4 numbers, then Start (0000 shows the wrong PIN). Open session, Start teaching, use Next, the timeline bar, Learners stuck? and the timer. Finish teaching, tap answers, snap both Makerbook pages, then send to unlock Session 2.</div>
-  </aside>`;
+  const main = SCREENS[0][1].concat(SCREENS[2][1]).map(([k, l]) => [k, l, parseInt(l, 10)]).sort((a, b) => a[2] - b[2]);
+  const states = SCREENS[1][1];
+  const inState = states.some(([k]) => k === S.screen);
+  return `<header class="topnav" aria-label="Prototype screens">
+    <img src="${IMG.hand}" alt="MakerGhat" style="width:26px;height:26px">
+    <span class="sep"></span>
+    <nav class="nums" aria-label="Main flow">${main.map(([k, l, n]) => `<button class="num ${S.screen === k ? 'on' : ''}" data-act="go" data-arg="${k}" title="${esc(l.replace(/^\d+\s*/, ''))}" aria-label="${esc(l)}">${n}</button>`).join('')}</nav>
+    <span class="sep"></span>
+    <label class="sr" for="stateSel">Other states</label>
+    <select id="stateSel" class="statesel"><option value="" ${inState ? '' : 'selected'}>States</option>${states.map(([k, l]) => `<option value="${k}" ${S.screen === k ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>
+    <button class="iconbtn" data-act="restart" title="Restart demo" aria-label="Restart demo">${ic('restart', 18)}</button>
+  </header>`;
 }
+document.addEventListener('change', (e) => { if (e.target.id === 'stateSel' && e.target.value) go(e.target.value); });
 function render(keepScroll) {
   const sc = document.querySelector('.screen .scroll');
   const y = keepScroll && sc ? sc.scrollTop : 0;
   const app = document.getElementById('app');
   const isAdmin = S.screen === 'admin';
   app.innerHTML = `<div class="wrap">${panelHTML()}${isAdmin ? `<div class="adminwrap">${adminScreen()}</div>` : `<div class="device"><div class="screen">${screenHTML()}</div></div>`}</div>`;
+  fitDevice();
   const sc2 = document.querySelector('.screen .scroll');
   if (sc2) sc2.scrollTop = y;
   if (!keepScroll) window.scrollTo(0, 0);
 }
 
+function fitDevice() {
+  const d = document.querySelector('.device'); if (!d) return;
+  if (window.innerWidth <= 760) { d.style.zoom = ''; return; }
+  const nav = document.querySelector('.topnav'); const used = (nav ? nav.offsetHeight : 50) + 60;
+  const z = Math.min(1, Math.max(0.6, (window.innerHeight - used) / 820));
+  d.style.zoom = z;
+}
+window.addEventListener('resize', fitDevice);
 /* ---------- actions ---------- */
 const ACT = {
   go: (a) => go(a), noop: () => {},
